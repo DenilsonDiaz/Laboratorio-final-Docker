@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GameVault, catálogo de videojuegos ejecutado con Docker Compose.">
+  <title>GameVault | Catálogo de videojuegos</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#inicio" aria-label="Ir al inicio">
+      <span class="brand-mark">GV</span>
+      <span><strong>GameVault</strong><small>Biblioteca multijugador</small></span>
+    </a>
+    <nav aria-label="Navegación principal">
+      <a href="#catalogo">Catálogo</a>
+      <a href="#arquitectura">Arquitectura</a>
+      <button class="button button-primary" id="open-create" type="button">+ Nuevo videojuego</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="hero-copy">
+        <span class="eyebrow"><span></span> Laboratorio Docker · Redes II</span>
+        <h1>Tu colección digital,<br><em>en una sola bóveda.</em></h1>
+        <p>Administra videojuegos, encuentra tu próxima aventura y guarda favoritos. Cinco servicios conectados en una arquitectura segura y reproducible.</p>
+        <div class="hero-actions">
+          <a class="button button-primary button-large" href="#catalogo">Explorar catálogo</a>
+          <button class="button button-secondary button-large" id="hero-create" type="button">Agregar juego</button>
+        </div>
+        <div class="tech-line">
+          <span>NGINX</span><i></i><span>Flask</span><i></i><span>PostgreSQL</span><i></i><span>Redis</span>
+        </div>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="controller">
+          <span class="controller-center">GV</span>
+          <span class="dpad">✚</span>
+          <span class="button-a">A</span>
+          <span class="button-b">B</span>
+        </div>
+        <span class="floating-card card-one">RPG</span>
+        <span class="floating-card card-two">PC</span>
+        <span class="floating-card card-three">★ 4.9</span>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Métricas del catálogo">
+      <article><span class="metric-icon purple">▦</span><div><strong id="metric-games">0</strong><small>videojuegos</small></div></article>
+      <article><span class="metric-icon cyan">♥</span><div><strong id="metric-favorites">0</strong><small>favoritos</small></div></article>
+      <article><span class="metric-icon pink">◉</span><div><strong id="metric-visits">0</strong><small>visitas</small></div></article>
+      <article><span class="metric-icon green">●</span><div><strong>5/5</strong><small>servicios activos</small></div></article>
+    </section>
+
+    <section class="catalog-section" id="catalogo">
+      <div class="section-heading">
+        <div><span class="eyebrow"><span></span> Biblioteca</span><h2>Catálogo de videojuegos</h2></div>
+        <p>Busca por título, descripción o desarrollador y combina los filtros.</p>
+      </div>
+
+      <div class="filter-panel">
+        <label class="search-field">
+          <span>⌕</span>
+          <input id="search" type="search" placeholder="Buscar videojuego o estudio..." autocomplete="off">
+        </label>
+        <select id="genre-filter" aria-label="Filtrar por género"><option value="">Todos los géneros</option></select>
+        <select id="platform-filter" aria-label="Filtrar por plataforma"><option value="">Todas las plataformas</option></select>
+        <select id="status-filter" aria-label="Filtrar por estado">
+          <option value="">Cualquier estado</option>
+          <option value="nuevo">Nuevos</option>
+          <option value="clasico">Clásicos</option>
+          <option value="proximamente">Próximamente</option>
+        </select>
+        <button class="button button-quiet" id="clear-filters" type="button">Limpiar</button>
+      </div>
+
+      <div class="catalog-meta"><strong id="result-count">0 resultados</strong><span>Ordenados por destacados y fecha</span></div>
+      <div class="loading" id="loading"><span></span><p>Cargando la bóveda...</p></div>
+      <div class="game-grid" id="game-grid" aria-live="polite"></div>
+      <div class="empty-state" id="empty-state" hidden>
+        <span>⌁</span><h3>No encontramos videojuegos</h3><p>Modifica los filtros o registra un nuevo título.</p>
+        <button class="button button-primary" id="empty-create" type="button">Agregar videojuego</button>
+      </div>
+    </section>
+
+    <section class="architecture" id="arquitectura">
+      <div><span class="eyebrow"><span></span> Infraestructura</span><h2>Cinco servicios.<br>Un solo punto de entrada.</h2></div>
+      <div class="service-list">
+        <span><b>01</b> NGINX · Frontend y proxy</span>
+        <span><b>02</b> Catalog API · CRUD</span>
+        <span><b>03</b> Interactions API · Favoritos</span>
+        <span><b>04</b> PostgreSQL · Persistencia</span>
+        <span><b>05</b> Redis · Datos temporales</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+  <span>GameVault</span>
+
+  <p>Laboratorio Docker · Redes II · Universidad Mesoamericana</p>
+
+  <small>
+    Denilson Yair Díaz López · Carné 202308106<br>
+    Jose Raúl Soto Cal · Carné 202308084<br>
+    Diego Alejandro Xicara Santizo · Carné 202408048
+  </small>
+</footer>
+
+  <dialog class="modal" id="game-modal">
+    <form id="game-form" novalidate>
+      <div class="modal-header"><div><span class="eyebrow">Inventario</span><h2 id="modal-title">Nuevo videojuego</h2></div><button class="icon-button" id="close-modal" type="button" aria-label="Cerrar">×</button></div>
+      <div class="form-grid">
+        <label class="field field-wide">Título<input id="game-title" name="title" maxlength="120" required><small class="field-error" data-error="title"></small></label>
+        <label class="field field-wide">Descripción<textarea name="description" maxlength="700" rows="3" required></textarea><small class="field-error" data-error="description"></small></label>
+        <label class="field">Género<select id="game-genre" name="genre" required><option value="">Seleccionar</option></select><small class="field-error" data-error="genre"></small></label>
+        <label class="field">Plataforma<select id="game-platform" name="platform" required><option value="">Seleccionar</option></select><small class="field-error" data-error="platform"></small></label>
+        <label class="field">Fecha de lanzamiento<input name="release_date" type="date" required><small class="field-error" data-error="release_date"></small></label>
+        <label class="field">Desarrollador<input name="developer" maxlength="120" required><small class="field-error" data-error="developer"></small></label>
+        <label class="field">Precio (USD)<input name="price" type="number" min="0" max="1000" step="0.01" required><small class="field-error" data-error="price"></small></label>
+        <label class="field">Unidades disponibles<input name="stock" type="number" min="0" max="10000" step="1" required><small class="field-error" data-error="stock"></small></label>
+        <label class="featured-toggle field-wide"><input name="featured" type="checkbox"><span></span><div><strong>Juego destacado</strong><small>Aparecerá primero en el catálogo.</small></div></label>
+      </div>
+      <div class="modal-actions"><button class="button button-secondary" id="cancel-modal" type="button">Cancelar</button><button class="button button-primary" id="save-game" type="submit">Guardar videojuego</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="confirm-modal" id="confirm-modal">
+    <div class="danger-icon">!</div><h2>Eliminar videojuego</h2><p id="confirm-message"></p>
+    <div class="modal-actions"><button class="button button-secondary" id="cancel-delete" type="button">Cancelar</button><button class="button button-danger" id="confirm-delete" type="button">Sí, eliminar</button></div>
+  </dialog>
+
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+</body>
+</html>

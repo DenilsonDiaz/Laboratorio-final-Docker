@@ -1,0 +1,116 @@
+name: gamevault
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      CATALOG_API_PORT: ${CATALOG_API_PORT:-5000}
+      INTERACTIONS_API_PORT: ${INTERACTIONS_API_PORT:-5001}
+    depends_on:
+      catalog-api:
+        condition: service_healthy
+      interactions-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/nginx-health || exit 1"]
+      interval: 10s
+      timeout: 4s
+      retries: 8
+      start_period: 10s
+    networks:
+      - gamevault-network
+    restart: unless-stopped
+
+  catalog-api:
+    build:
+      context: ./catalog-api
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      API_PORT: ${CATALOG_API_PORT:-5000}
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "${CATALOG_API_PORT:-5000}"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:' + '$${API_PORT}' + '/health')\""]
+      interval: 10s
+      timeout: 4s
+      retries: 8
+      start_period: 15s
+    networks:
+      - gamevault-network
+    restart: unless-stopped
+
+  interactions-api:
+    build:
+      context: ./interactions-api
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      REDIS_HOST: cache
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      API_PORT: ${INTERACTIONS_API_PORT:-5001}
+    depends_on:
+      cache:
+        condition: service_healthy
+    expose:
+      - "${INTERACTIONS_API_PORT:-5001}"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:' + '$${API_PORT}' + '/health')\""]
+      interval: 10s
+      timeout: 4s
+      retries: 8
+      start_period: 10s
+    networks:
+      - gamevault-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 4s
+      retries: 12
+    networks:
+      - gamevault-network
+    restart: unless-stopped
+
+  cache:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    expose:
+      - "${REDIS_PORT:-6379}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - gamevault-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: gamevault_postgres_data
+
+networks:
+  gamevault-network:
+    name: gamevault_internal
+    driver: bridge
